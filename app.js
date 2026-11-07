@@ -1,6 +1,6 @@
 /* KisanExpress demo - all data is sample data stored in the browser (localStorage) */
 const $ = s => document.querySelector(s);
-const MANDALS = ["Keesara", "Shamirpet", "Medchal"];
+const DIST = {"Medchal-Malkajgiri":["Keesara","Shamirpet","Medchal"],"Rangareddy":["Shadnagar","Chevella"]};
 
 const TX = {
  en: {tag:"Simple Agricultural Delivery Network",farmer:"👨‍🌾 Farmer",shop:"🏪 Shop",driver:"🛺 Driver",
@@ -13,7 +13,7 @@ const TX = {
   st_accepted:"Accepted - waiting for driver",st_out:"Out for delivery - live",st_delivered:"Delivered",
   save:"Save today's stock",saved:"Stock saved",acc:"Accept",pick:"Pick up & start",done:"Mark delivered",
   jobs:"Delivery jobs",none:"Nothing here yet",reset:"Reset demo",price:"Price ₹",qty:"Qty",oos:"Out of stock",
-  mylist:"Orders for this shop"},
+  mylist:"Orders for this shop",mandal:"Mandal",district:"District",mand:"Your mandal",stockq:"Stock qty"},
  te: {tag:"సులభమైన వ్యవసాయ డెలివరీ నెట్‌వర్క్",farmer:"👨‍🌾 రైతు",shop:"🏪 షాప్",driver:"🛺 డ్రైవర్",
   verify:"మీ ధృవీకరణ",aad:"ఆధార్ నంబర్ (12 అంకెలు)",pata:"పట్టాదార్ పాస్‌బుక్ నంబర్",vbtn:"ధృవీకరించు",
   vnote:"డెమో మాత్రమే: ఆధార్ చివరి 4 అంకెలు మాత్రమే ఉంటాయి.",verr:"12 అంకెల ఆధార్, పాస్‌బుక్ నంబర్ ఇవ్వండి",
@@ -24,7 +24,7 @@ const TX = {
   st_accepted:"అంగీకరించారు - డ్రైవర్ కోసం వేచి ఉంది",st_out:"డెలివరీకి బయలుదేరింది - లైవ్",st_delivered:"డెలివరీ అయింది",
   save:"ఈరోజు స్టాక్ సేవ్ చేయండి",saved:"స్టాక్ సేవ్ అయింది",acc:"అంగీకరించు",pick:"తీసుకుని బయలుదేరు",done:"డెలివరీ అయింది",
   jobs:"డెలివరీ పనులు",none:"ఇక్కడ ఏమీ లేదు",reset:"డెమో రీసెట్",price:"ధర ₹",qty:"పరిమాణం",oos:"స్టాక్ లేదు",
-  mylist:"ఈ షాప్ ఆర్డర్లు"}
+  mylist:"ఈ షాప్ ఆర్డర్లు",mandal:"మండలం",district:"జిల్లా",mand:"మీ మండలం",stockq:"స్టాక్ సంఖ్య"}
 };
 
 const P = a => a.map((x, i) => ({id:i+1, n:x[0], c:x[1], u:x[2], pr:x[3], q:x[4], x:x[5] || 0}));
@@ -32,15 +32,16 @@ const today = () => new Date().toLocaleDateString('en-IN');
 
 function init() {
  return {lang:'en', role:'farmer', cat:'all', pay:'now', ss:1, c:{}, o:[], f:{}, d:today(), shops:[
-  {id:1,n:"Sri Lakshmi Agro",m:"Keesara",l:"Main Road",r:4.6,p:P([["Urea 45kg","fert","bag",267,40,1],["DAP 50kg","fert","bag",1350,25],["Paddy seed BPT-5204","seed","10kg",520,30],["Bt Cotton seed","seed","pkt",864,50,1]])},
-  {id:2,n:"Rythu Seva Kendram",m:"Keesara",l:"Bus Stand Road",r:4.2,p:P([["Urea 45kg","fert","bag",267,0,1],["Maize seed","seed","4kg",780,20],["Paddy seed BPT-5204","seed","10kg",530,12]])},
-  {id:3,n:"Venkateshwara Fertilizers",m:"Shamirpet",l:"Market Yard",r:4.4,p:P([["Urea 45kg","fert","bag",267,60,1],["DAP 50kg","fert","bag",1350,0],["Bt Cotton seed","seed","pkt",864,35,1]])},
-  {id:4,n:"Annapurna Agro Centre",m:"Medchal",l:"Highway Junction",r:4.8,p:P([["Urea 45kg","fert","bag",267,35,1],["NPK 20-20-0","fert","bag",1100,18],["Maize seed","seed","4kg",790,40]])}
+  {id:1,n:"Sri Lakshmi Agro",m:"Keesara",d:"Medchal-Malkajgiri",l:"Main Road",r:4.6,p:P([["Urea 45kg","fert","bag",267,40,1],["DAP 50kg","fert","bag",1350,25],["Paddy seed BPT-5204","seed","10kg",520,30],["Bt Cotton seed","seed","pkt",864,50,1]])},
+  {id:2,n:"Rythu Seva Kendram",m:"Keesara",d:"Medchal-Malkajgiri",l:"Bus Stand Road",r:4.2,p:P([["Urea 45kg","fert","bag",267,0,1],["Maize seed","seed","4kg",780,20],["Paddy seed BPT-5204","seed","10kg",530,12]])},
+  {id:3,n:"Venkateshwara Fertilizers",m:"Shamirpet",d:"Medchal-Malkajgiri",l:"Market Yard",r:4.4,p:P([["Urea 45kg","fert","bag",267,60,1],["DAP 50kg","fert","bag",1350,0],["Bt Cotton seed","seed","pkt",864,35,1]])},
+  {id:4,n:"Annapurna Agro Centre",m:"Medchal",d:"Medchal-Malkajgiri",l:"Highway Junction",r:4.8,p:P([["Urea 45kg","fert","bag",267,35,1],["NPK 20-20-0","fert","bag",1100,18],["Maize seed","seed","4kg",790,40]])},
+  {id:5,n:"Rythu Mitra Agro",m:"Shadnagar",d:"Rangareddy",l:"Old Bus Stand",r:4.3,p:P([["Urea 45kg","fert","bag",267,28,1],["DAP 50kg","fert","bag",1350,15],["Paddy seed BPT-5204","seed","10kg",525,22]])}
  ]};
 }
-let S; try { S = JSON.parse(localStorage.getItem('kx')); } catch (e) {}
+let S; try { S = JSON.parse(localStorage.getItem('kx2')); } catch (e) {}
 if (!S) S = init();
-const save = () => { try { localStorage.setItem('kx', JSON.stringify(S)); } catch (e) {} };
+const save = () => { try { localStorage.setItem('kx2', JSON.stringify(S)); } catch (e) {} };
 const t = k => (TX[S.lang] && TX[S.lang][k]) || TX.en[k] || k;
 const shopOf = id => S.shops.find(x => x.id == id);
 const toast = m => { const e = $('#toast'); e.textContent = m; e.className = 'show'; setTimeout(() => e.className = '', 2600); };
@@ -58,10 +59,12 @@ function vF() {
  if (!f.ok) return `<section class="card"><h2>🔐 ${t('verify')}</h2>
   <input id="aa" inputmode="numeric" maxlength="12" placeholder="${t('aad')}">
   <input id="pb" placeholder="${t('pata')}">
-  <select id="mm">${MANDALS.map(m => `<option>${m}</option>`).join('')}</select>
+  <label class="lb">${t('mand')}</label>
+  <select id="mm">${Object.entries(DIST).map(([d, ms]) => `<optgroup label="${d}">${ms.map(m => `<option value="${m}|${d}">${m}</option>`).join('')}</optgroup>`).join('')}</select>
   <button class="btn" onclick="ver()">${t('vbtn')}</button><p class="note">${t('vnote')}</p></section>`;
- const list = S.shops.slice().sort((a, b) => (b.m == f.m) - (a.m == f.m));
- return `<section class="card"><b>✅ ${t('ok')}</b> · 📍 ${f.m} · Aadhaar ••••${f.a}</section>
+ const sc = s => (s.m == f.m) * 2 + (s.d == f.d);
+ const list = S.shops.slice().sort((a, b) => sc(b) - sc(a));
+ return `<section class="card"><b>✅ ${t('ok')}</b> · 📍 ${t('mandal')}: <b>${f.m}</b> · ${t('district')}: ${f.d} · Aadhaar ••••${f.a}</section>
  <section class="card"><h2>🛍️ ${t('cat')}</h2><div class="chips">${['all','seed','fert'].map(c => `<button class="chip ${S.cat == c ? 'on' : ''}" onclick="S.cat='${c}';R()">${t(c)}</button>`).join('')}</div></section>
  <section class="card"><h2>🏪 ${t('shops')}</h2>${list.map(shopCard).join('')}</section>
  ${cartV()}${ledger()}
@@ -70,7 +73,7 @@ function vF() {
 function ver() {
  const a = $('#aa').value.trim(), p = $('#pb').value.trim();
  if (!/^\d{12}$/.test(a) || p.length < 4) return toast(t('verr'));
- S.f = {ok:1, a:a.slice(-4), m:$('#mm').value}; R();
+ const [m, d] = $('#mm').value.split('|'); S.f = {ok:1, a:a.slice(-4), m, d}; R();
 }
 function shopCard(s) {
  const rows = s.p.filter(p => S.cat == 'all' || p.c == S.cat).map(p => `<div class="pr"><div><b>${p.n}</b> ₹${p.pr}/${p.u}<br>
@@ -78,7 +81,8 @@ function shopCard(s) {
   <div class="ad"><input type="number" min="1" value="1" id="q${s.id}_${p.id}" aria-label="${t('qty')}">
   <button ${p.q ? '' : 'disabled'} onclick="add(${s.id},${p.id})">${p.q ? t('add') : t('oos')}</button></div></div>`).join('');
  return `<div class="shop"><b>${s.n}</b><span class="star">★ ${s.r}</span>
-  <div class="sm">📍 ${s.l}, ${s.m} · <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n + ' ' + s.l + ' ' + s.m)}">Map</a></div>
+  <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d}</div>
+  <div class="sm">${s.l} · <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n + ' ' + s.l + ' ' + s.m)}">Map</a></div>
   <div class="sm">${t('upd')}: ${S.d}</div>${rows}</div>`;
 }
 function add(sid, pid) {
@@ -99,7 +103,7 @@ function cartV() {
 function place() {
  const s = shopOf(S.c.s), it = []; let tot = 0;
  for (const [id, q] of Object.entries(S.c.i)) { const p = s.p.find(x => x.id == id); p.q = Math.max(0, p.q - q); tot += p.pr * q; it.push(p.n + ' × ' + q); }
- S.o.unshift({id:Date.now(), s:s.id, sn:s.n, l:s.l + ', ' + s.m, it:it.join(', '), tot, pay:S.pay, paid:S.pay == 'now', st:'placed', pg:0});
+ S.o.unshift({id:Date.now(), s:s.id, sn:s.n, l:s.l + ', ' + s.m + ' (' + s.d + ')', it:it.join(', '), tot, pay:S.pay, paid:S.pay == 'now', st:'placed', pg:0});
  S.c = {}; R(); toast('✅ ' + s.n);
 }
 function ledger() {
@@ -124,11 +128,12 @@ function setSt(id, st) { const o = S.o.find(x => x.id == id); o.st = st; if (st 
 /* ---------- Shop owner ---------- */
 function vS() {
  const s = shopOf(S.ss), mine = S.o.filter(o => o.s == s.id);
- return `<section class="card"><h2>🏪 ${t('shop')}</h2>
-  <select onchange="S.ss=+this.value;R()">${S.shops.map(x => `<option value="${x.id}" ${x.id == s.id ? 'selected' : ''}>${x.n} (${x.m})</option>`).join('')}</select>
-  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}</span><span class="ad">
-   <input type="number" id="pp${p.id}" value="${p.pr}" aria-label="${t('price')}" title="${t('price')}">
-   <input type="number" id="pq${p.id}" value="${p.q}" aria-label="${t('qty')}" title="${t('qty')}"></span></div>`).join('')}
+ return `<section class="card"><h2>${t('shop')}</h2>
+  <select onchange="S.ss=+this.value;R()">${S.shops.map(x => `<option value="${x.id}" ${x.id == s.id ? 'selected' : ''}>${x.n} (${x.m}, ${x.d})</option>`).join('')}</select>
+  <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d}</div>
+  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small></span><span class="ad">
+   <label class="fl">${t('price')}<input type="number" id="pp${p.id}" value="${p.pr}"></label>
+   <label class="fl">${t('stockq')}<input type="number" id="pq${p.id}" value="${p.q}"></label></span></div>`).join('')}
   <button class="btn" onclick="saveStock()">${t('save')}</button></section>
  <section class="card"><h2>📦 ${t('mylist')}</h2>${mine.map(o => oc(o, 's')).join('') || `<div class="empty">${t('none')}</div>`}</section>`;
 }
@@ -160,5 +165,5 @@ setInterval(() => {
 /* ---------- Wire up ---------- */
 document.querySelectorAll('#roles button').forEach(b => b.onclick = () => { S.role = b.dataset.r; R(); });
 $('#lang').onchange = e => { S.lang = e.target.value; R(); };
-$('#reset').onclick = () => { try { localStorage.removeItem('kx'); } catch (e) {} location.reload(); };
+$('#reset').onclick = () => { try { localStorage.removeItem('kx2'); } catch (e) {} location.reload(); };
 R();
