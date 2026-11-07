@@ -1,88 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KisanExpress - Hyperlocal AgriConnect</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KisanExpress</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Top App Navigation Bar with Language Picker -->
-    <header class="navbar">
-        <div class="navbar-main">
-            <div class="brand">🚜 KisanExpress</div>
-            <div class="tagline" id="ui-tagline">Simple Agricultural Delivery Network</div>
-        </div>
-        <div class="lang-container">
-            🌐 <select id="lang-picker" class="lang-dropdown">
-                <option value="en" selected>English</option>
-                <option value="te">తెలుగు (Telugu)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-            </select>
-        </div>
-    </header>
-
-    <div class="app-container">
-        <!-- STEP 1: Mandal Selector Dropdown -->
-        <div class="ui-panel select-zone">
-            <label class="section-title" id="ui-select-mandal-label">📍 Select Your Mandal</label>
-            <select id="mandal-picker" class="whatsapp-dropdown">
-                <option value="" id="ui-mandal-placeholder">-- Choose Mandal Center --</option>
-                <option value="jainath">Jainath Mandal</option>
-                <option value="adilabad">Adilabad Rural</option>
-            </select>
-        </div>
-
-        <!-- STEP 2: Category Filters Switch -->
-        <div class="ui-panel filter-panel">
-            <span class="section-title" id="ui-category-label">🛍️ Category</span>
-            <div class="category-grid">
-                <button class="cat-btn active" data-filter="all" id="ui-cat-all">All</button>
-                <button class="cat-btn" data-filter="seeds" id="ui-cat-seeds">Seeds</button>
-                <button class="cat-btn" data-filter="fertilizer" id="ui-cat-fertilizer">Fertilizer</button>
-            </div>
-        </div>
-
-        <!-- STEP 3: Live Shop Inventory Mapping Container -->
-        <div class="ui-panel inventory-section">
-            <span class="section-title" id="ui-shops-label">🏪 Available Local Shops</span>
-            <div id="shop-cards-container" class="cards-stack">
-                <!-- Data injected dynamically by JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL POPUP: Aadhaar & Patta Book Verification Form -->
-    <div id="kyc-modal-overlay" class="modal-backdrop hidden">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="ui-modal-title">⚠️ Government Restriction Verification (KYC Check)</h3>
-                <span id="close-modal-btn" class="close-x">&times;</span>
-            </div>
-            <form id="secure-kyc-engine-form" class="modal-body">
-                <p class="warning-alert" id="ui-modal-warning">Note: Aadhaar Card and Patta Passbook details are mandatory for Urea booking.</p>
-                
-                <div class="form-group">
-                    <label id="ui-label-aadhaar">12-Digit Aadhaar Number:</label>
-                    <input type="text" id="input-uid" placeholder="1234 5678 9012" maxlength="12" required pattern="\d{12}">
-                </div>
-
-                <div class="form-group">
-                    <label id="ui-label-patta">Patta Passbook Number:</label>
-                    <input type="text" id="input-patta" placeholder="E.g. T120300405..." required>
-                </div>
-
-                <div class="form-group checkout-options">
-                    <label id="ui-label-payment">Payment Method:</label>
-                    <select id="checkout-payment-mode" required>
-                        <option value="cash" id="ui-pay-cod">Cash on Delivery</option>
-                        <option value="smart-khata" id="ui-pay-khata">📊 Smart Khata (1% Interest Credit)</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="submit-booking-btn" id="ui-btn-verify">Verify & Book Order</button>
-            </form>
-        </div>
-    </div>
+<header>
+  <div><h1>🚜 KisanExpress</h1><small id="tag"></small></div>
+  <select id="lang" aria-label="Language">
+    <option value="en">English</option>
+    <option value="te">తెలుగు</option>
+  </select>
+</header>
+<nav id="roles">
+  <button data-r="farmer"></button>
+  <button data-r="shop"></button>
+  <button data-r="driver"></button>
+</nav>
+<main id="app"></main>
+<footer><button id="reset"></button></footer>
+<div id="toast" role="status"></div>
+<script src="app.js"></script>
 </body>
 </html>
