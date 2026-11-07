@@ -1,3 +1,4 @@
+:root{--g:#065f53;--g2:#128c7e
 :root{--g:#065f53;--g2:#128c7e;--soil:#ece4de;--ink:#1d2b27;--gold:#e0a82e;--red:#b3402a}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Telugu",Roboto,sans-serif;background:var(--soil);color:var(--ink);padding-bottom:70px}
@@ -40,3 +41,7 @@ footer{text-align:center}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(90px);background:#222;color:#fff;padding:12px 18px;border-radius:24px;transition:transform .25s;max-width:90%;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0)}
 @media (prefers-reduced-motion:reduce){.fill,.truck,#toast{transition:none}}
+
+.fl{display:flex;flex-direction:column;font-size:.75rem;color:#555;font-weight:600}
+.fl input{width:90px;margin:2px 0 0}
+.lb{font-weight:600;font-size:.9rem}
