@@ -53,3 +53,5 @@ footer{text-align:center}
 .star2{color:#b57f00}
 .rate{margin-top:8px;padding-top:8px;border-top:1px dashed #ddd}
 .stars{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+
+.card>button.link{background:none;border:0;color:var(--g);text-decoration:underline;padding:6px 0;font-size:.9rem}
