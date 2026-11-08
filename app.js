@@ -1,4 +1,6 @@
 /* KisanExpress logic - needs data.js loaded first */
+Object.assign(TX.en, {neword:"New orders waiting in other shops"});
+Object.assign(TX.te, {neword:"ఇతర షాపుల్లో కొత్త ఆర్డర్లు ఉన్నాయి"});
 let S; try { S = JSON.parse(localStorage.getItem('kx6')); } catch (e) {}
 if (!S || !S.shops || !S.ah || !S.nm || !S.fv) S = init();
 const save = () => { try { localStorage.setItem('kx6', JSON.stringify(S)); } catch (e) {} };
@@ -122,7 +124,7 @@ function place() {
  }
  for (const [id, q] of Object.entries(S.c.i)) { const p = s.p.find(x => x.id == id); p.q = Math.max(0, p.q - q); it.push(p.n + ' × ' + q); }
  S.o.unshift({id:Date.now(), s:s.id, sn:s.n, fm:S.fm, l:s.l + ', ' + s.m + ' (' + s.d + ')', it:it.join(', '), tot, pay:S.pay, paid:S.pay == 'now', st:'placed', pg:0});
- S.c = {}; R(); toast('✅ ' + s.n);
+ S.ss = s.id; S.c = {}; R(); toast('✅ ' + s.n);
 }
 function ledger() {
  const d = S.o.filter(o => o.pay == 'udh' && !o.paid && o.fm == S.fm), by = {};
@@ -162,7 +164,7 @@ function setSt(id, st) { const o = S.o.find(x => x.id == id); o.st = st; if (st 
 /* ---------- Shop owner ---------- */
 function vS() {
  const s = shopOf(S.ss), mine = S.o.filter(o => o.s == s.id), dues = mine.filter(o => o.pay == 'udh' && !o.paid), rs = rvOf(s.id);
- return `<section class="card"><h2>${t('shop')}</h2>
+ return `${pendingNote(s)}<section class="card"><h2>${t('shop')}</h2>
   <select onchange="S.ss=+this.value;R()">${S.shops.map(x => `<option value="${x.id}" ${x.id == s.id ? 'selected' : ''}>${esc(x.n)} (${x.m}, ${x.d})</option>`).join('')}</select>
   <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d} · ★ ${avg(rs)} (${rs.length})</div>
   ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small></span><span class="ad">
@@ -181,6 +183,10 @@ function duesView(d) {
   <div class="sm">${t('allsh')}: ₹${all}</div>
   ${os.map(o => `<div class="pr"><span><small>${o.it}</small><br>₹${o.tot}</span><button onclick="payOff(${o.id})">${t('recv')}</button></div>`).join('')}</div>`;
  }).join('') || `<div class="empty">${t('none')}</div>`;
+}
+function pendingNote(s) {
+ const o = S.shops.filter(x => x.id != s.id && S.o.some(y => y.s == x.id && y.st == 'placed'));
+ return o.length ? `<section class="card warn"><b>🔔 ${t('neword')}</b>${o.map(x => `<button class="chip" style="margin-top:6px;width:100%" onclick="S.ss=${x.id};R()">${esc(x.n)} (${x.m})</button>`).join('')}</section>` : '';
 }
 function saveStock() {
  shopOf(S.ss).p.forEach(p => { p.pr = +$('#pp' + p.id).value || 0; p.q = Math.max(0, +$('#pq' + p.id).value || 0); });
