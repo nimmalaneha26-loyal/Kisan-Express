@@ -3,6 +3,7 @@ Object.assign(TX.en, {neword:"New orders waiting in other shops"});
 Object.assign(TX.te, {neword:"ఇతర షాపుల్లో కొత్త ఆర్డర్లు ఉన్నాయి"});
 let S; try { S = JSON.parse(localStorage.getItem('kx6')); } catch (e) {}
 if (!S || !S.shops || !S.ah || !S.nm || !S.fv) S = init();
+ensureLic();
 const save = () => { try { localStorage.setItem('kx6', JSON.stringify(S)); } catch (e) {} };
 const t = k => (TX[S.lang] && TX[S.lang][k]) || TX.en[k] || k;
 const shopOf = id => S.shops.find(x => x.id == id);
@@ -19,16 +20,16 @@ const mSel = (id, v, oc) => `<select id="${id}" onchange="${oc}">${Object.entrie
 function R() {
  document.querySelectorAll('#roles button').forEach(b => { b.classList.toggle('on', b.dataset.r == S.role); b.textContent = t(b.dataset.r); });
  $('#tag').textContent = t('tag'); $('#lang').value = S.lang; $('#reset').textContent = t('reset');
- $('#app').innerHTML = S.role == 'farmer' ? vF() : S.role == 'shop' ? vS() : vD();
+ $('#app').innerHTML = S.role == 'farmer' ? vF() : S.role == 'shop' ? vS() : S.role == 'admin' ? vA() : vD();
  save();
 }
 
 /* ---------- Farmer ---------- */
 function vF() {
  const f = fv();
- const list = S.shops.filter(s => s.d == S.bd && (!S.bm || s.m == S.bm));
+ const list = S.shops.filter(s => s.d == S.bd && (!S.bm || s.m == S.bm) && shopVisible(s));
  const mine = rvFarmer();
- return `${profCard()}<section class="card"><h2>📍 ${t('sel')}</h2>
+ return `${profCard()}${addrCard()}<section class="card"><h2>📍 ${t('sel')}</h2>
   <label class="lb">${t('district')}</label><select onchange="S.bd=this.value;S.bm='';R()">${Object.keys(DIST).map(d => `<option ${d == S.bd ? 'selected' : ''}>${d}</option>`).join('')}</select>
   <label class="lb">${t('mandal')}</label><select onchange="S.bm=this.value;R()"><option value="">${t('allm')}</option>${DIST[S.bd].map(m => `<option ${m == S.bm ? 'selected' : ''}>${m}</option>`).join('')}</select>
   <p class="note">${f.ok ? `✅ ${t('ok')} · ${t('mandal')}: <b>${f.m}</b> (${f.d}) · Aadhaar ••••${f.a}` : 'ℹ️ ' + t('nv')}</p></section>
@@ -74,13 +75,13 @@ function reg() {
  if (!n || !/^[6-9]\d{9}$/.test(m)) return toast(t('regerr'));
  S.fm = m; S.nm[m] = n; R(); toast('✅ ' + n);
 }
-function switchF() { S.fm = ''; S.c = {}; S.vf = null; R(); }
+function switchF() { S.fm = ''; S.c = {}; S.vf = null; S.ae = ''; R(); }
 function setMobile(v) { v = v.trim(); if (!/^[6-9]\d{9}$/.test(v)) { toast(t('merr')); return R(); } S.fm = v; if (!S.nm[v]) S.nm[v] = 'Farmer'; R(); }
 function setName(v) { S.nm[S.fm] = v.trim() || 'Farmer'; R(); }
 function fillM() { $('#vm').innerHTML = DIST[$('#vd').value].map(m => `<option>${m}</option>`).join(''); }
 function shopCard(s) {
  const rs = rvOf(s.id), o = S.open[s.id];
- const rows = s.p.filter(p => S.cat == 'all' || p.c == S.cat).map(p => `<div class="pr"><div><b>${p.n}</b> <small>/${p.u}</small><br>
+ const rows = s.p.filter(p => (S.cat == 'all' || p.c == S.cat) && licOk(s, p.c)).map(p => `<div class="pr"><div><b>${p.n}</b> <small>/${p.u}</small><br>
   <span class="tag">${t('price')}${p.pr}</span> <span class="tag ${p.q ? '' : 'out'}">${t('stock')}: ${p.q}</span>
   ${p.x ? `<br><small class="lock">🔒 ${t('res')}</small>` : ''}</div>
   <div class="ad"><input type="number" min="1" value="1" id="q${s.id}_${p.id}" aria-label="${t('qty')}">
@@ -89,6 +90,7 @@ function shopCard(s) {
   <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d}</div>
   <div class="sm">${s.l} · <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n + ' ' + s.l + ' ' + s.m)}">Map</a></div>
   <div class="sm">${t('upd')}: ${S.d} · 📒 ${t('limit')} ₹${s.cl}</div>
+  ${licBadge(s)}
   <button class="link" onclick="S.open[${s.id}]=!S.open[${s.id}];R()">${o ? t('hide') : t('seerev')} (${rs.length})</button>
   ${o ? revList(rs) : ''}${rows}</div>`;
 }
@@ -100,6 +102,7 @@ function add(sid, pid) {
 }
 function addItem(sid, pid, q) {
  const s = shopOf(sid), p = s.p.find(x => x.id == pid);
+ if (!licOk(s, p.c)) { R(); return toast('⚠ ' + t('lneed')); }
  if (p.x && s.m != fv().m) { R(); return toast('🔒 ' + t('mismatch') + ' (' + fv().m + ')'); }
  if (S.c.s != sid) S.c = {s:sid, i:{}};
  S.c.i[pid] = Math.min(p.q, (S.c.i[pid] || 0) + q); R(); toast('✅ ' + p.n + ' × ' + S.c.i[pid]);
@@ -111,11 +114,15 @@ function cartV() {
  return `<section class="card"><h2>🧺 ${t('cart')} - ${esc(s.n)}</h2>${l}<div class="pr"><b>Total</b><b>₹${tot}</b></div>
   <label class="rad"><input type="radio" name="pay" ${S.pay == 'now' ? 'checked' : ''} onclick="S.pay='now'">${t('now')}</label>
   <label class="rad"><input type="radio" name="pay" ${S.pay == 'udh' ? 'checked' : ''} onclick="S.pay='udh'">${t('udh')} · ${t('limit')} ₹${s.cl}</label>
+  ${addrPick()}
   <button class="btn" onclick="place()">${t('place')}</button></section>`;
 }
 function place() {
  if (S.pay == 'udh' && !fv().ok) { S.vf = {place:1, n:''}; R(); window.scrollTo(0, 0); return; }
  const s = shopOf(S.c.s), it = []; let tot = 0;
+ const ad = curAddr();
+ if (!ad) { S.ae = 'new'; R(); window.scrollTo(0, 0); return toast(t('adneed')); }
+ if (Object.keys(S.c.i).some(id => s.p.find(x => x.id == id).x) && ad.m != fv().m) return toast(t('admand') + ' (' + fv().m + ')');
  for (const [id, q] of Object.entries(S.c.i)) tot += s.p.find(x => x.id == id).pr * q;
  if (S.pay == 'udh') {
   const due = S.o.filter(o => o.s == s.id && o.fm == S.fm && o.pay == 'udh' && !o.paid).reduce((a, o) => a + o.tot, 0);
@@ -123,7 +130,7 @@ function place() {
   if (S.o.filter(o => o.fm == S.fm && o.pay == 'udh' && !o.paid).reduce((a, o) => a + o.tot, 0) + tot > GL) return toast(t('udhhg'));
  }
  for (const [id, q] of Object.entries(S.c.i)) { const p = s.p.find(x => x.id == id); p.q = Math.max(0, p.q - q); it.push(p.n + ' × ' + q); }
- S.o.unshift({id:Date.now(), s:s.id, sn:s.n, fm:S.fm, l:s.l + ', ' + s.m + ' (' + s.d + ')', it:it.join(', '), tot, pay:S.pay, paid:S.pay == 'now', st:'placed', pg:0});
+ S.o.unshift({id:Date.now(), s:s.id, sn:s.n, fm:S.fm, ad:Object.assign({}, ad), l:s.l + ', ' + s.m + ' (' + s.d + ')', it:it.join(', '), tot, pay:S.pay, paid:S.pay == 'now', st:'placed', pg:0});
  S.ss = s.id; S.c = {}; R(); toast('✅ ' + s.n);
 }
 function ledger() {
@@ -157,23 +164,23 @@ function oc(o, r) {
  }
  return `<div class="shop"><b>${esc(o.sn)}</b> · ₹${o.tot} · ${o.pay == 'udh' ? '📒' : '💵'}
   ${r != 'f' ? `<div class="sm">👨‍🌾 ${esc(nm(o.fm))} · 📱${o.fm}</div>` : ''}<div class="sm">${o.it}</div>
-  <div class="sm">📍 ${o.l}</div><div class="st">${t('st_' + o.st)}</div>${tr}<div>${act}</div></div>`;
+  <div class="sm">🏪 ${t('pickup')}: ${o.l}</div>${adLine(o)}<div class="st">${t('st_' + o.st)}</div>${tr}<div>${act}</div></div>`;
 }
 function setSt(id, st) { const o = S.o.find(x => x.id == id); o.st = st; if (st == 'out') o.pg = 0; R(); }
 
 /* ---------- Shop owner ---------- */
 function vS() {
  const s = shopOf(S.ss), mine = S.o.filter(o => o.s == s.id), dues = mine.filter(o => o.pay == 'udh' && !o.paid), rs = rvOf(s.id);
- return `${pendingNote(s)}<section class="card"><h2>${t('shop')}</h2>
+ return `${pendingNote(s)}${licWarn(s)}<section class="card"><h2>${t('shop')}</h2>
   <select onchange="S.ss=+this.value;R()">${S.shops.map(x => `<option value="${x.id}" ${x.id == s.id ? 'selected' : ''}>${esc(x.n)} (${x.m}, ${x.d})</option>`).join('')}</select>
   <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d} · ★ ${avg(rs)} (${rs.length})</div>
-  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small></span><span class="ad">
+  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small>${licOk(s, p.c) ? '' : `<br><small class="lock">⚠ ${t('lneed')}</small>`}</span><span class="ad">
    <label class="fl">${t('price')}<input type="number" id="pp${p.id}" value="${p.pr}"></label>
    <label class="fl">${t('stockq')}<input type="number" id="pq${p.id}" value="${p.q}"></label></span></div>`).join('')}
   <button class="btn" onclick="saveStock()">${t('save')}</button></section>
  <section class="card"><h2>📒 ${t('dues')}</h2>${duesView(dues)}</section>
  <section class="card"><h2>📦 ${t('mylist')}</h2>${mine.map(o => oc(o, 's')).join('') || `<div class="empty">${t('none')}</div>`}</section>
- <section class="card"><h2>⭐ ${t('rshopr')}</h2>${revList(rs)}</section>`;
+ <section class="card"><h2>⭐ ${t('rshopr')}</h2>${revList(rs)}</section>${licCard(s)}`;
 }
 function duesView(d) {
  const g = {}; d.forEach(o => (g[o.fm] = g[o.fm] || []).push(o));
