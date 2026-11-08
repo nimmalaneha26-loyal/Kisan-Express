@@ -14,6 +14,9 @@ Object.assign(TX.te, {adr:"నా డెలివరీ చిరునామా
  adnone:"ఇంకా చిరునామా సేవ్ చేయలేదు",adderr:"చిరునామా పేరు, స్వీకర్త పేరు, 10 అంకెల మొబైల్, ఇల్లు/వీధి/గ్రామం, 6 అంకెల పిన్ ఇవ్వండి",
  adopen:"మ్యాప్‌లో తెరవండి",adpick:"డెలివరీ చిరునామా",pickup:"తీసుకునే చోటు"});
 
+const adst = document.createElement('style');
+adst.textContent = '.shop button.red{background:#b3402a}';
+document.head.appendChild(adst);
 let ADLOC = null;
 function AD() { S.ad = S.ad || {}; if (!S.ad[S.fm]) S.ad[S.fm] = {list:[], sel:''}; return S.ad[S.fm]; }
 function curAddr() { const a = AD(); return a.list.find(x => x.id == a.sel) || a.list[0] || null; }
