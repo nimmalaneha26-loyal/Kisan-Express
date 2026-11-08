@@ -1,4 +1,4 @@
-/* KisanExpress demo - all data is sample data stored in the browser (localStorage) */
+ /* KisanExpress demo - all data is sample data stored in the browser (localStorage) */
 const $ = s => document.querySelector(s);
 const DIST = {"Adilabad":["Adilabad Urban", "Adilabad Rural", "Mavala", "Gudihathnoor", "Bazarhathnoor", "Bela", "Boath", "Jainath", "Tamsi", "Bheempur", "Talamadugu", "Neradigonda", "Ichoda", "Sirikonda", "Indervelly", "Narnoor", "Gadiguda", "Utnoor", "Bhoraj", "Sonala"],"Medchal-Malkajgiri":["Alwal", "Bachupally", "Balanagar", "Dundigal Gandimaisamma", "Ghatkesar", "Kapra", "Keesara", "Kukatpally", "Malkajgiri", "Medchal", "Medipally", "Muduchintalpalli", "Quthbullapur", "Shamirpet", "Uppal"]};
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -219,4 +219,4 @@ function oc(o, r) {
   if (r == 's') act = o.rf ? `${t('rated')}: ${stars(o.rf)}` : rateUI(o.id, 'f');
  }
  return `<div class="shop"><b>${esc(o.sn)}</b> · ₹${o.tot} · ${o.pay == 'udh' ? '📒' : '💵'}
-                                                                                                                                                                            
+  
