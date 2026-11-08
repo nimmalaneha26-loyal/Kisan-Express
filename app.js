@@ -211,11 +211,4 @@ function rate(id, k, n) {
 function oc(o, r) {
  const tr = (o.st == 'out' || o.st == 'delivered') ? `<div class="track"><div class="fill" data-o="${o.id}" style="width:${o.pg}%"></div><span class="truck" data-t="${o.id}" style="left:calc(${o.pg}% - 14px)">🛺</span></div>` : '';
  let act = '';
- if (r == 's' && o.st == 'placed') act = `<button onclick="setSt(${o.id},'accepted')">${t('acc')}</button>`;
- if (r == 'd' && o.st == 'accepted') act = `<button onclick="setSt(${o.id},'out')">${t('pick')}</button>`;
- if (r == 'd' && o.st == 'out' && o.pg >= 100) act = `<button onclick="setSt(${o.id},'delivered')">${t('done')}</button>`;
- if (o.st == 'delivered') {
-  if (r == 'f') act = o.rs ? `${t('rated')}: ${stars(o.rs)}` : rateUI(o.id, 's');
-  if (r == 's') act = o.rf ? `${t('rated')}: ${stars(o.rf)}` : rateUI(o.id, 'f');
- }
- return `<div class="shop"><b>${esc(o.sn)}</b> · ₹${o.
+ if (r == 's' && o.st == 'placed') act = `<button onclick="setSt($
