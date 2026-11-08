@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KisanExpress</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div><h1>🚜 KisanExpress</h1><small id="tag"></small></div>
+  <select id="lang" aria-label="Language">
+    <option value="en">English</option>
+    <option value="te">తెలుగు</option>
+  </select>
+</header>
+<nav id="roles">
+  <button data-r="farmer"></button>
+  <button data-r="shop"></button>
+  <button data-r="driver"></button>
+</nav>
+<main id="app"></main>
+<footer><button id="reset"></button></footer>
+<div id="toast" role="status"></div>
+<script>
+window.onerror=function(m,u,l){var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:16px;color:#b3402a;font-weight:700">Error: '+m+' (line '+l+')<br><small>Please send a screenshot of this to Claude.</small></div>'};
+</script>
+<script src="app.js"></script>
+</body>
+</html>
