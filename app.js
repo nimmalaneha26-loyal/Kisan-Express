@@ -3,7 +3,6 @@ Object.assign(TX.en, {neword:"New orders waiting in other shops"});
 Object.assign(TX.te, {neword:"ఇతర షాపుల్లో కొత్త ఆర్డర్లు ఉన్నాయి"});
 let S; try { S = JSON.parse(localStorage.getItem('kx6')); } catch (e) {}
 if (!S || !S.shops || !S.ah || !S.nm || !S.fv) S = init();
-ensureLic();
 const save = () => { try { localStorage.setItem('kx6', JSON.stringify(S)); } catch (e) {} };
 const t = k => (TX[S.lang] && TX[S.lang][k]) || TX.en[k] || k;
 const shopOf = id => S.shops.find(x => x.id == id);
@@ -20,14 +19,14 @@ const mSel = (id, v, oc) => `<select id="${id}" onchange="${oc}">${Object.entrie
 function R() {
  document.querySelectorAll('#roles button').forEach(b => { b.classList.toggle('on', b.dataset.r == S.role); b.textContent = t(b.dataset.r); });
  $('#tag').textContent = t('tag'); $('#lang').value = S.lang; $('#reset').textContent = t('reset');
- $('#app').innerHTML = S.role == 'farmer' ? vF() : S.role == 'shop' ? vS() : S.role == 'admin' ? vA() : vD();
+ $('#app').innerHTML = S.role == 'farmer' ? vF() : S.role == 'shop' ? vS() : vD();
  save();
 }
 
 /* ---------- Farmer ---------- */
 function vF() {
  const f = fv();
- const list = S.shops.filter(s => s.d == S.bd && (!S.bm || s.m == S.bm) && shopVisible(s));
+ const list = S.shops.filter(s => s.d == S.bd && (!S.bm || s.m == S.bm));
  const mine = rvFarmer();
  return `${profCard()}${addrCard()}<section class="card"><h2>📍 ${t('sel')}</h2>
   <label class="lb">${t('district')}</label><select onchange="S.bd=this.value;S.bm='';R()">${Object.keys(DIST).map(d => `<option ${d == S.bd ? 'selected' : ''}>${d}</option>`).join('')}</select>
@@ -81,7 +80,7 @@ function setName(v) { S.nm[S.fm] = v.trim() || 'Farmer'; R(); }
 function fillM() { $('#vm').innerHTML = DIST[$('#vd').value].map(m => `<option>${m}</option>`).join(''); }
 function shopCard(s) {
  const rs = rvOf(s.id), o = S.open[s.id];
- const rows = s.p.filter(p => (S.cat == 'all' || p.c == S.cat) && licOk(s, p.c)).map(p => `<div class="pr"><div><b>${p.n}</b> <small>/${p.u}</small><br>
+ const rows = s.p.filter(p => S.cat == 'all' || p.c == S.cat).map(p => `<div class="pr"><div><b>${p.n}</b> <small>/${p.u}</small><br>
   <span class="tag">${t('price')}${p.pr}</span> <span class="tag ${p.q ? '' : 'out'}">${t('stock')}: ${p.q}</span>
   ${p.x ? `<br><small class="lock">🔒 ${t('res')}</small>` : ''}</div>
   <div class="ad"><input type="number" min="1" value="1" id="q${s.id}_${p.id}" aria-label="${t('qty')}">
@@ -90,7 +89,6 @@ function shopCard(s) {
   <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d}</div>
   <div class="sm">${s.l} · <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n + ' ' + s.l + ' ' + s.m)}">Map</a></div>
   <div class="sm">${t('upd')}: ${S.d} · 📒 ${t('limit')} ₹${s.cl}</div>
-  ${licBadge(s)}
   <button class="link" onclick="S.open[${s.id}]=!S.open[${s.id}];R()">${o ? t('hide') : t('seerev')} (${rs.length})</button>
   ${o ? revList(rs) : ''}${rows}</div>`;
 }
@@ -102,7 +100,6 @@ function add(sid, pid) {
 }
 function addItem(sid, pid, q) {
  const s = shopOf(sid), p = s.p.find(x => x.id == pid);
- if (!licOk(s, p.c)) { R(); return toast('⚠ ' + t('lneed')); }
  if (p.x && s.m != fv().m) { R(); return toast('🔒 ' + t('mismatch') + ' (' + fv().m + ')'); }
  if (S.c.s != sid) S.c = {s:sid, i:{}};
  S.c.i[pid] = Math.min(p.q, (S.c.i[pid] || 0) + q); R(); toast('✅ ' + p.n + ' × ' + S.c.i[pid]);
@@ -171,16 +168,16 @@ function setSt(id, st) { const o = S.o.find(x => x.id == id); o.st = st; if (st 
 /* ---------- Shop owner ---------- */
 function vS() {
  const s = shopOf(S.ss), mine = S.o.filter(o => o.s == s.id), dues = mine.filter(o => o.pay == 'udh' && !o.paid), rs = rvOf(s.id);
- return `${pendingNote(s)}${licWarn(s)}<section class="card"><h2>${t('shop')}</h2>
+ return `${pendingNote(s)}<section class="card"><h2>${t('shop')}</h2>
   <select onchange="S.ss=+this.value;R()">${S.shops.map(x => `<option value="${x.id}" ${x.id == s.id ? 'selected' : ''}>${esc(x.n)} (${x.m}, ${x.d})</option>`).join('')}</select>
   <div class="sm">📍 ${t('mandal')}: <b>${s.m}</b> · ${t('district')}: ${s.d} · ★ ${avg(rs)} (${rs.length})</div>
-  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small>${licOk(s, p.c) ? '' : `<br><small class="lock">⚠ ${t('lneed')}</small>`}</span><span class="ad">
+  ${s.p.map(p => `<div class="pr"><span><b>${p.n}</b>${p.x ? ' 🔒' : ''}<br><small>/${p.u}</small></span><span class="ad">
    <label class="fl">${t('price')}<input type="number" id="pp${p.id}" value="${p.pr}"></label>
    <label class="fl">${t('stockq')}<input type="number" id="pq${p.id}" value="${p.q}"></label></span></div>`).join('')}
   <button class="btn" onclick="saveStock()">${t('save')}</button></section>
  <section class="card"><h2>📒 ${t('dues')}</h2>${duesView(dues)}</section>
  <section class="card"><h2>📦 ${t('mylist')}</h2>${mine.map(o => oc(o, 's')).join('') || `<div class="empty">${t('none')}</div>`}</section>
- <section class="card"><h2>⭐ ${t('rshopr')}</h2>${revList(rs)}</section>${licCard(s)}`;
+ <section class="card"><h2>⭐ ${t('rshopr')}</h2>${revList(rs)}</section>`;
 }
 function duesView(d) {
  const g = {}; d.forEach(o => (g[o.fm] = g[o.fm] || []).push(o));
